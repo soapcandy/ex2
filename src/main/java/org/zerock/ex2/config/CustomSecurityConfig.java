@@ -34,6 +34,8 @@ public class CustomSecurityConfig {
         http.cors(config -> config.configurationSource(corsConfigurationSource()));
         http.csrf(config -> config.disable());
 
+        http.formLogin(config -> config.loginPage("/api/member/login"));
+
         // 세션쿠키 사용안함
         http.sessionManagement(config -> config.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
