@@ -17,6 +17,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.zerock.ex2.security.filter.JWTCheckFilter;
 import org.zerock.ex2.security.handler.APILoginSuccessHandler;
 import org.zerock.ex2.security.handler.CustomAccessDeniedHandler;
+import org.zerock.ex2.security.handler.OAuthAPILoginSuccessHandler;
 
 import java.util.Arrays;
 
@@ -52,7 +53,7 @@ public class CustomSecurityConfig {
         });
 
         http.oauth2Login(config -> {
-
+            config.successHandler(new OAuthAPILoginSuccessHandler());
         });
 
         // 세션쿠키 사용안함
