@@ -13,6 +13,9 @@ import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.zerock.ex2.domain.Member;
+import org.zerock.ex2.domain.MemberRole;
+import org.zerock.ex2.dto.MemberDTO;
 import org.zerock.ex2.repository.MemberRepository;
 
 @Log4j2
@@ -35,13 +38,13 @@ public class CustomOAuth2UserDetailsService extends DefaultOAuth2UserService {
         ClientRegistration clientRegistration = userRequest.getClientRegistration();
         String clientName = clientRegistration.getClientName();
 
-        log.info("NAME: "+clientName);
+        log.info("NAME: " + clientName);
         OAuth2User oAuth2User = super.loadUser(userRequest);
         Map<String, Object> paramMap = oAuth2User.getAttributes();
 
         String email = null;
 
-        switch (clientName){
+        switch (clientName) {
             case "kakao":
                 email = getKakaoEmail(paramMap);
                 break;
@@ -51,10 +54,51 @@ public class CustomOAuth2UserDetailsService extends DefaultOAuth2UserService {
         log.info(email);
         log.info("===============================");
 
-        return null;
+        MemberDTO memberDTO = generateDTO(email, paramMap);
+
+        log.info("MEMBERDTO: " + memberDTO);
+
+        return memberDTO;
     }
 
-    private String getKakaoEmail(Map<String, Object> paramMap){
+    private MemberDTO generateDTO(String email, Map<String, Object> params) {
+
+        Member member = memberRepository.getWithRoles(email);
+
+        //데이터베이스에 해당 이메일을 사용자가 없다면
+        if (member == null) {
+            //회원 추가 -- mid는 이메일 주소/ 패스워드는 1111
+            Member socialMember = Member.builder()
+                    .email(email)
+                    .pw(passwordEncoder.encode("1111"))
+                    .nickname("Social")
+                    .email(email)
+                    .social(true)
+                    .build();
+            socialMember.addRole(MemberRole.USER);
+            memberRepository.save(socialMember);
+
+            //MemberDTO 구성 및 반환
+            MemberDTO memberDTO =
+                    new MemberDTO(email, "1111", "Social", true, java.util.List.of("USER"));
+            memberDTO.setProps(params);
+
+            return memberDTO;
+        } else {
+
+            MemberDTO memberDTO =
+                    new MemberDTO(
+                            member.getEmail(),
+                            member.getPw(),
+                            member.getNickname(),
+                            member.isSocial(),
+                            member.getMemberRoleList().stream().map(role -> role.name()).collect(Collectors.toList()));
+
+            return memberDTO;
+        }
+    }
+
+    private String getKakaoEmail(Map<String, Object> paramMap) {
 
         log.info("KAKAO-----------------------------------------");
 
@@ -64,7 +108,7 @@ public class CustomOAuth2UserDetailsService extends DefaultOAuth2UserService {
 
         LinkedHashMap accountMap = (LinkedHashMap) value;
 
-        String email = (String)accountMap.get("email");
+        String email = (String) accountMap.get("email");
 
         log.info("email..." + email);
 
