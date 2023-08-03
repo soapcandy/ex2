@@ -23,16 +23,31 @@ public class JWTCheckFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
 
-        // Preflight
+        //Preflight
         if (request.getMethod().equals("OPTIONS")) {
-
             return true;
         }
 
-        // /api/todo/list, /api/member/login
+        // /api/todo/list /api/member/login
         String path = request.getRequestURI();
 
+        log.info("--------------------------");
+        log.info(" ");
+        log.info(path);
+
         if (path.startsWith("/api/member/")) {
+            return true;
+        }
+
+        if (path.startsWith("/login")) {
+            return true;
+        }
+
+        if (path.startsWith("/oauth2")) {
+            return true;
+        }
+
+        if (path.endsWith(".ico")) {
             return true;
         }
 

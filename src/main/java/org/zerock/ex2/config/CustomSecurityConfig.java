@@ -47,6 +47,14 @@ public class CustomSecurityConfig {
             config.accessDeniedHandler(new CustomAccessDeniedHandler());
         });
 
+        http.oauth2Client(config -> {
+
+        });
+
+        http.oauth2Login(config -> {
+
+        });
+
         // 세션쿠키 사용안함
         http.sessionManagement(config -> config.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
